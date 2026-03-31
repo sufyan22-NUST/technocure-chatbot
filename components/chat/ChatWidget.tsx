@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
 import LeadCaptureForm from "./LeadCaptureForm";
+import PreChatEmailForm from "./PreChatEmailForm";
 import ErrorBanner from "@/components/ui/ErrorBanner";
 import Spinner from "@/components/ui/Spinner";
 import type {
@@ -23,6 +24,8 @@ import type {
 } from "@/lib/types";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
+
+const EMAIL_CAPTURE_KEY = "tc_email_captured";
 
 /** Default branding shown before the first API response arrives. */
 const DEFAULT_BRANDING: BrandingMeta = {
@@ -53,6 +56,17 @@ export default function ChatWidget() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [pendingLeadMessage, setPendingLeadMessage] = useState<string | null>(null);
   const [branding, setBranding] = useState<BrandingMeta>(DEFAULT_BRANDING);
+
+  // Pre-chat email capture
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
+
+  useEffect(() => {
+    // Show email form the first time the widget opens (if not already captured)
+    if (isOpen && !localStorage.getItem(EMAIL_CAPTURE_KEY)) {
+      setShowEmailForm(true);
+    }
+  }, [isOpen]);
 
   const sessionId = useRef<string>(uuidv4());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -126,6 +140,28 @@ export default function ChatWidget() {
   );
 
   // ── Event handlers ─────────────────────────────────────────────────────────
+
+  async function handleEmailSubmit(email: string) {
+    setIsSubmittingEmail(true);
+    try {
+      await fetch("/api/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, sessionId: sessionId.current }),
+      });
+    } catch {
+      // Best-effort — don't block the chat if this fails
+    } finally {
+      localStorage.setItem(EMAIL_CAPTURE_KEY, email);
+      setShowEmailForm(false);
+      setIsSubmittingEmail(false);
+    }
+  }
+
+  function handleEmailSkip() {
+    localStorage.setItem(EMAIL_CAPTURE_KEY, "skipped");
+    setShowEmailForm(false);
+  }
 
   function handleSend() {
     const text = inputValue.trim();
@@ -219,51 +255,65 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
-            {messages.map((msg) => (
-              <ChatBubble key={msg.id} message={msg} themeColor={branding.theme_color} />
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-bl-sm px-4 py-3">
-                  <Spinner size="sm" />
-                </div>
-              </div>
-            )}
-            {leadSaved && !showLeadForm && (
-              <p className="text-center text-[10px] text-green-600 font-medium">
-                ✓ Details received — we&apos;ll be in touch soon.
-              </p>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Error banner */}
-          {error && (
-            <ErrorBanner message={error} onDismiss={() => setError(null)} />
-          )}
-
-          {/* Lead capture form */}
-          {showLeadForm && !leadSaved && (
-            <LeadCaptureForm
-              onSubmit={handleLeadSubmit}
-              onSkip={handleLeadSkip}
-              isSubmitting={isSubmittingLead}
+          {/* Pre-chat email capture */}
+          {showEmailForm && (
+            <PreChatEmailForm
+              onSubmit={handleEmailSubmit}
+              onSkip={handleEmailSkip}
+              isSubmitting={isSubmittingEmail}
+              themeColor={branding.theme_color}
             />
           )}
 
-          {/* Input */}
-          {!showLeadForm && (
-            <div className="shrink-0">
-              <ChatInput
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSend}
-                isLoading={isLoading}
-                themeColor={branding.theme_color}
-              />
-            </div>
+          {/* Messages + input (hidden while email form is shown) */}
+          {!showEmailForm && (
+            <>
+              <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+                {messages.map((msg) => (
+                  <ChatBubble key={msg.id} message={msg} themeColor={branding.theme_color} />
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-bl-sm px-4 py-3">
+                      <Spinner size="sm" />
+                    </div>
+                  </div>
+                )}
+                {leadSaved && !showLeadForm && (
+                  <p className="text-center text-[10px] text-green-600 font-medium">
+                    ✓ Details received — we&apos;ll be in touch soon.
+                  </p>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Error banner */}
+              {error && (
+                <ErrorBanner message={error} onDismiss={() => setError(null)} />
+              )}
+
+              {/* Lead capture form */}
+              {showLeadForm && !leadSaved && (
+                <LeadCaptureForm
+                  onSubmit={handleLeadSubmit}
+                  onSkip={handleLeadSkip}
+                  isSubmitting={isSubmittingLead}
+                />
+              )}
+
+              {/* Input */}
+              {!showLeadForm && (
+                <div className="shrink-0">
+                  <ChatInput
+                    value={inputValue}
+                    onChange={setInputValue}
+                    onSubmit={handleSend}
+                    isLoading={isLoading}
+                    themeColor={branding.theme_color}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

@@ -68,6 +68,19 @@ as $$
   limit match_count;
 $$;
 
+-- ── Visitor emails table ──────────────────────────────────────────────────────
+
+-- Stores email addresses captured by the pre-chat form.
+create table if not exists visitor_emails (
+  id           uuid        primary key default gen_random_uuid(),
+  email        text        not null,
+  session_id   text,
+  chat_snippet text,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists visitor_emails_created_at_idx on visitor_emails (created_at desc);
+
 -- ── Admin table ───────────────────────────────────────────────────────────────
 
 create table if not exists admin (
@@ -82,6 +95,7 @@ create table if not exists admin (
 alter table leads            enable row level security;
 alter table knowledge_chunks enable row level security;
 alter table admin            enable row level security;
+alter table visitor_emails   enable row level security;
 
 -- Drop and re-create policies so this script is idempotent
 do $$
@@ -108,5 +122,13 @@ begin
   ) then
     create policy "No public access to admin"
       on admin for all using (false);
+  end if;
+
+  -- visitor_emails
+  if not exists (
+    select 1 from pg_policies where tablename = 'visitor_emails' and policyname = 'No public access to visitor_emails'
+  ) then
+    create policy "No public access to visitor_emails"
+      on visitor_emails for all using (false);
   end if;
 end $$;

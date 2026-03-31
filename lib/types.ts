@@ -80,3 +80,12 @@ export interface LeadFormValues {
   email: string;
   company: string;
 }
+
+/** Row shape for the `visitor_emails` table. */
+export interface VisitorEmail {
+  id: string;
+  email: string;
+  session_id: string | null;
+  chat_snippet: string | null;
+  created_at: string;
+}
