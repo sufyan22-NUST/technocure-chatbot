@@ -15,12 +15,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import anthropic from "@/lib/anthropicClient";
 import { supabaseServer } from "@/lib/supabaseClient";
-import type { ChatRequest, ChatResponse, ApiError, Lead } from "@/lib/types";
+import type { ChatRequest, ChatResponse, ApiError, Lead, ConversationTurn } from "@/lib/types";
 import { validateChatRequest, validateLeadPayload, sanitizeMessage } from "@/lib/utils/validation";
 import { searchKnowledgeChunks } from "@/lib/utils/vectorSearch";
 import { buildSystemPrompt, detectLeadIntent } from "@/lib/utils/promptBuilder";
 
 const CHAT_MODEL = "claude-haiku-4-5-20251001";
+/** Max prior turns to include for conversation context (each turn = 1 user + 1 assistant msg). */
+const MAX_HISTORY_TURNS = 6;
 
 /** Branding metadata included in every API response. */
 const BRANDING = {
@@ -33,18 +35,37 @@ const BRANDING = {
 // ── Modular helpers ────────────────────────────────────────────────────────────
 
 /**
- * Calls Claude with a RAG-enriched system prompt.
+ * Calls Claude with a RAG-enriched system prompt and full conversation history.
+ * History gives the model context across turns so it can adapt to the visitor's
+ * evolving needs and emotional state rather than treating each message in isolation.
  * Throws on API error — the route handler catches and converts to 500.
  */
 async function getAIReply(
   userMessage: string,
-  systemPrompt: string
+  systemPrompt: string,
+  history: ConversationTurn[] = []
 ): Promise<string> {
+  // Trim history to the last MAX_HISTORY_TURNS turns (each turn = user + assistant)
+  const trimmedHistory = history.slice(-(MAX_HISTORY_TURNS * 2));
+
+  // Claude requires alternating user/assistant messages — validate and deduplicate
+  const safeHistory: Array<{ role: "user" | "assistant"; content: string }> = [];
+  for (const turn of trimmedHistory) {
+    const last = safeHistory[safeHistory.length - 1];
+    if (!last || last.role !== turn.role) {
+      safeHistory.push({ role: turn.role, content: turn.content });
+    }
+  }
+
   const message = await anthropic.messages.create({
     model: CHAT_MODEL,
-    max_tokens: 512,
+    max_tokens: 768,
+    temperature: 0.7,
     system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
+    messages: [
+      ...safeHistory,
+      { role: "user", content: userMessage },
+    ],
   });
 
   const block = message.content[0];
@@ -98,7 +119,7 @@ export async function POST(
     return NextResponse.json({ error: leadError, status: 400 }, { status: 400 });
   }
 
-  const { sessionId, lead } = body;
+  const { sessionId, lead, history = [] } = body;
   const userMessage = sanitizeMessage(body.message);
 
   try {
@@ -117,7 +138,7 @@ export async function POST(
       : null;
 
     const [reply, savedLead] = await Promise.all([
-      getAIReply(userMessage, systemPrompt),
+      getAIReply(userMessage, systemPrompt, history),
       leadPayload ? persistLead(leadPayload) : Promise.resolve(false),
     ]);
 

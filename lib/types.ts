@@ -27,13 +27,21 @@ export interface KnowledgeChunk {
 
 // ── API contracts ──────────────────────────────────────────────────────────────
 
+/** A single turn of conversation history sent to the API. */
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 /**
  * Body sent by the chat widget to POST /api/chat.
+ * `history` carries prior turns so the AI maintains context across messages.
  * `lead` is included only when the visitor has submitted the lead form.
  */
 export interface ChatRequest {
   message: string;
   sessionId: string;
+  history?: ConversationTurn[];
   lead?: Omit<Lead, "id" | "created_at">;
 }
 

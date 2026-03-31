@@ -19,6 +19,7 @@ import type {
   ChatMessage,
   ChatRequest,
   ChatResponse,
+  ConversationTurn,
   LeadFormValues,
   Lead,
 } from "@/lib/types";
@@ -70,6 +71,12 @@ export default function ChatWidget() {
 
   const sessionId = useRef<string>(uuidv4());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Stable ref so sendMessage always reads current messages without stale closures
+  const messagesRef = useRef<ChatMessage[]>([WELCOME_MESSAGE]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -82,6 +89,11 @@ export default function ChatWidget() {
       setError(null);
       setIsLoading(true);
 
+      // Snapshot history from current messages (before appending the new user message)
+      const history: ConversationTurn[] = messagesRef.current
+        .filter((m) => m.id !== "welcome")
+        .map((m) => ({ role: m.role, content: m.content }));
+
       const userMessage: ChatMessage = {
         id: uuidv4(),
         role: "user",
@@ -93,6 +105,7 @@ export default function ChatWidget() {
       const payload: ChatRequest = {
         message: userText,
         sessionId: sessionId.current,
+        history,
         ...(lead ? { lead } : {}),
       };
 
@@ -114,7 +127,6 @@ export default function ChatWidget() {
         const { reply, savedLead, shouldCaptureLead, branding: responseBranding } =
           data as ChatResponse;
 
-        // Apply branding from the API response
         if (responseBranding) setBranding(responseBranding);
 
         const assistantMessage: ChatMessage = {
