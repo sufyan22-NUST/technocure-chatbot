@@ -1,0 +1,123 @@
+{
+  "overview": "Technocure Solutions combines deep technology expertise with hands-on business insight to help banks, corporates, and regulated enterprises modernize systems, secure data, and execute measurable digital transformation. Founded to address legacy systems, compliance risks, and fragmented technology strategies, the company focuses on structured, outcome-driven solutions. Led by CEO Dumisani Sibanda (15+ years in enterprise IT and financial services), Technocure has delivered 100+ assessments and realized $50M+ in operational efficiencies for regulated enterprises.",
+  "services": [
+    {
+      "title": "Hardware Services",
+      "description": "Supply and setup of laptops, desktops, printers, peripherals, and office furniture for small to large teams, including government and corporate offices. Covers orders of any size with delivery, setup assistance, and ongoing support.",
+      "outcomes": [
+        "Dependable equipment that fits the team's workflow",
+        "On-time delivery and operational continuity",
+        "Reduced downtime and equipment-related delays"
+      ],
+      "ideal_clients": [
+        "Offices upgrading or replacing hardware",
+        "Government departments",
+        "Corporates",
+        "Small and medium-sized businesses (SMBs)"
+      ]
+    },
+    {
+      "title": "Technological Framework Assessment",
+      "description": "A comprehensive evaluation of IT systems, architecture, and infrastructure to identify risks, inefficiencies, compliance gaps, and modernization opportunities. Delivers a data-driven, actionable roadmap for investment and optimization, including security and regulatory alignment reviews.",
+      "outcomes": [
+        "Clear visibility into existing systems and architecture",
+        "Reduced operational and security risks",
+        "Data-driven recommendations for modernization and cloud migration",
+        "Scalable, measurable transformation initiatives"
+      ],
+      "ideal_clients": [
+        "Banks and financial institutions",
+        "Corporates seeking full IT visibility",
+        "Leaders planning digital transformation initiatives"
+      ]
+    },
+    {
+      "title": "Application & Systems Modernization",
+      "description": "Modernization of legacy systems, applications, and internal platforms to improve operational speed, reliability, and measurable business outcomes. Includes auditing current systems, identifying bottlenecks, upgrading platforms, migrating to cloud-ready infrastructure, streamlining processes through automation and integration, and enhancing user experience.",
+      "outcomes": [
+        "Faster operations and reduced operational costs",
+        "Scalable, secure platforms aligned with compliance requirements",
+        "Improved team and client experience",
+        "Measurable ROI from modernization initiatives"
+      ],
+      "ideal_clients": [
+        "Enterprises with outdated or legacy platforms",
+        "Organizations with fragmented systems",
+        "Businesses needing to scale efficiently"
+      ]
+    },
+    {
+      "title": "Change Management",
+      "description": "A structured approach to ensure smooth adoption of new systems, processes, and technologies to maximize transformation impact. Covers stakeholder analysis, communication planning, employee training and enablement, adoption monitoring, and embedding sustainable change into operations.",
+      "outcomes": [
+        "Faster adoption with reduced employee resistance",
+        "Improved productivity and minimized operational disruption",
+        "Measurable adoption KPIs tied to ROI",
+        "Teams prepared and equipped for future changes"
+      ],
+      "ideal_clients": [
+        "Banks implementing new technology or processes",
+        "Corporates undergoing digital transformation",
+        "Organizations rolling out new platforms or workflows"
+      ]
+    },
+    {
+      "title": "Cybersecurity & Compliance",
+      "description": "Comprehensive protection of critical systems, data, and infrastructure while ensuring regulatory compliance. Services include risk assessment across networks, applications, and infrastructure; implementation of risk-based security controls; continuous monitoring; incident response; regulatory alignment; and ongoing security posture optimization.",
+      "outcomes": [
+        "Data protection and regulatory compliance",
+        "Operational continuity with minimal cyber risk",
+        "Scalable security frameworks",
+        "Measurable improvements in security posture"
+      ],
+      "ideal_clients": [
+        "Organizations handling sensitive data",
+        "Regulated enterprises",
+        "Banks and financial institutions",
+        "Corporates with complex IT environments"
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Who leads Technocure Solutions?",
+      "answer": "Dumisani Sibanda, CEO, with 15+ years of experience leading enterprise IT and digital transformation in regulated industries. He combines strategic insight with hands-on execution to ensure technology delivers measurable outcomes."
+    },
+    {
+      "question": "What industries does Technocure serve?",
+      "answer": "Technocure serves banks, financial services firms, corporates, and regulated enterprises."
+    },
+    {
+      "question": "What is included in hardware services?",
+      "answer": "Hardware services cover the supply and setup of laptops, desktops, printers, peripherals, and office furniture, along with delivery, setup assistance, and ongoing support for teams of any size."
+    },
+    {
+      "question": "What is a Technological Framework Assessment?",
+      "answer": "It is a comprehensive evaluation of your IT systems, architecture, and infrastructure to identify risks, inefficiencies, compliance gaps, and opportunities. The output is a data-driven roadmap for modernization and investment."
+    },
+    {
+      "question": "What does Application & Systems Modernization involve?",
+      "answer": "It involves upgrading or replacing legacy applications, platforms, and processes to improve operational speed, reliability, scalability, and compliance — including cloud migration, automation, and integration."
+    },
+    {
+      "question": "What is Change Management?",
+      "answer": "A structured approach to prepare, support, and enable employees to successfully adopt new systems or processes, including training programs, stakeholder communication, and adoption tracking."
+    },
+    {
+      "question": "What is included in Cybersecurity & Compliance services?",
+      "answer": "Services include risk assessment, implementation of security controls, continuous monitoring, incident response, regulatory compliance alignment, and ongoing optimization of your security posture."
+    },
+    {
+      "question": "What are the typical engagement timelines?",
+      "answer": "Hardware delivery depends on order size. Technological Framework Assessment takes 3–6 weeks. Application & Systems Modernization takes 3–9 months. Change Management takes 6–12 weeks. Cybersecurity & Compliance takes 3–6 weeks."
+    },
+    {
+      "question": "Will our operations be disrupted during an engagement?",
+      "answer": "No. Technocure designs phased, hands-on, and minimally disruptive implementations to ensure business continuity throughout every project."
+    },
+    {
+      "question": "What results has Technocure delivered?",
+      "answer": "Technocure has delivered 100+ assessments for banks and corporates and has helped clients realize $50M+ in operational efficiencies. The company is trusted by regulated enterprises for compliant, reliable solutions."
+    }
+  ]
+}
