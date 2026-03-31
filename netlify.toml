@@ -1,24 +1,14 @@
-# netlify.toml
-# Netlify deployment configuration for the Technocure chatbot (Next.js 14).
-# The @netlify/plugin-nextjs plugin handles SSR, API routes, and image optimisation.
-
 [build]
-  command   = "npm run build"
-  publish   = ".next"
+  command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS    = "--legacy-peer-deps"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Redirect bare /dashboard to itself (handled by Next.js middleware in production)
-[[redirects]]
-  from   = "/dashboard"
-  to     = "/dashboard"
-  status = 200
-
-# Security headers applied to all routes
 [[headers]]
   for = "/*"
   [headers.values]
