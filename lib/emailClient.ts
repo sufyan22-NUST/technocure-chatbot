@@ -14,27 +14,19 @@
  *   4. Copy the 16-character password into GMAIL_APP_PASSWORD.
  */
 
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/lib/email";
 
-const CEO_EMAIL = "sufyan.nust21@gmail.com";
+const OWNER_EMAIL = process.env.OWNER_EMAIL ?? process.env.GMAIL_USER ?? "";
 
-/** Returns a configured transporter, or null if credentials are missing. */
-function getTransporter() {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-
-  if (!user || !pass) {
+function hasCredentials(): boolean {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn(
       "[emailClient] GMAIL_USER or GMAIL_APP_PASSWORD not configured — " +
         "visitor notifications will be skipped."
     );
-    return null;
+    return false;
   }
-
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: { user, pass },
-  });
+  return true;
 }
 
 /**
@@ -46,8 +38,7 @@ export async function sendVisitorNotification(
   visitorEmail: string,
   chatSnippet?: string
 ): Promise<void> {
-  const transporter = getTransporter();
-  if (!transporter) return;
+  if (!hasCredentials()) return;
 
   const timestamp = new Date().toLocaleString("en-ZA", {
     timeZone: "Africa/Johannesburg",
@@ -55,62 +46,60 @@ export async function sendVisitorNotification(
     timeStyle: "short",
   });
 
-  await transporter.sendMail({
-    from: `"Technocure Bot" <${process.env.GMAIL_USER}>`,
-    to: CEO_EMAIL,
-    subject: `New chat visitor — ${visitorEmail}`,
-    html: `
-      <div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;
-                  padding:28px;border:1px solid #e5e7eb;border-radius:12px;
-                  background:#ffffff;">
+  const subject = `New chat visitor — ${visitorEmail}`;
+  const html = `
+    <div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;
+                padding:28px;border:1px solid #e5e7eb;border-radius:12px;
+                background:#ffffff;">
 
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-          <div style="width:36px;height:36px;border-radius:50%;background:#4dfe03;
-                      display:flex;align-items:center;justify-content:center;
-                      font-weight:700;font-size:12px;color:#111827;">TC</div>
-          <span style="font-size:16px;font-weight:600;color:#111827;">
-            New Visitor on Technocure Chat
-          </span>
-        </div>
-
-        <table style="width:100%;border-collapse:collapse;font-size:14px;">
-          <tr>
-            <td style="padding:10px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;width:130px;">
-              Visitor Email
-            </td>
-            <td style="padding:10px 0;color:#111827;font-weight:600;border-bottom:1px solid #f3f4f6;">
-              <a href="mailto:${visitorEmail}" style="color:#2563eb;text-decoration:none;">
-                ${visitorEmail}
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;">
-              Time (SAST)
-            </td>
-            <td style="padding:10px 0;color:#111827;border-bottom:1px solid #f3f4f6;">
-              ${timestamp}
-            </td>
-          </tr>
-          ${
-            chatSnippet
-              ? `<tr>
-                  <td style="padding:10px 0;color:#6b7280;vertical-align:top;">
-                    First Message
-                  </td>
-                  <td style="padding:10px 0;color:#374151;font-style:italic;">
-                    "${chatSnippet}"
-                  </td>
-                </tr>`
-              : ""
-          }
-        </table>
-
-        <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;
-                    font-size:11px;color:#9ca3af;">
-          Sent automatically by the Technocure chatbot
-        </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#4dfe03;
+                    display:flex;align-items:center;justify-content:center;
+                    font-weight:700;font-size:12px;color:#111827;">TC</div>
+        <span style="font-size:16px;font-weight:600;color:#111827;">
+          New Visitor on Technocure Chat
+        </span>
       </div>
-    `,
-  });
+
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr>
+          <td style="padding:10px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;width:130px;">
+            Visitor Email
+          </td>
+          <td style="padding:10px 0;color:#111827;font-weight:600;border-bottom:1px solid #f3f4f6;">
+            <a href="mailto:${visitorEmail}" style="color:#2563eb;text-decoration:none;">
+              ${visitorEmail}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;">
+            Time (SAST)
+          </td>
+          <td style="padding:10px 0;color:#111827;border-bottom:1px solid #f3f4f6;">
+            ${timestamp}
+          </td>
+        </tr>
+        ${
+          chatSnippet
+            ? `<tr>
+                <td style="padding:10px 0;color:#6b7280;vertical-align:top;">
+                  First Message
+                </td>
+                <td style="padding:10px 0;color:#374151;font-style:italic;">
+                  "${chatSnippet}"
+                </td>
+              </tr>`
+            : ""
+        }
+      </table>
+
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;
+                  font-size:11px;color:#9ca3af;">
+        Sent automatically by the Technocure chatbot
+      </div>
+    </div>
+  `;
+
+  await sendEmail(OWNER_EMAIL, subject, html);
 }

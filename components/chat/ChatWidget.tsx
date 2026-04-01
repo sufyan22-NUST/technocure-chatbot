@@ -27,6 +27,8 @@ import type {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const EMAIL_CAPTURE_KEY = "tc_email_captured";
+/** Milliseconds of inactivity before the conversation summary is sent. */
+const INACTIVITY_MS = 10 * 60 * 1000; // 10 minutes
 
 /** Default branding shown before the first API response arrives. */
 const DEFAULT_BRANDING: BrandingMeta = {
@@ -73,10 +75,74 @@ export default function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Stable ref so sendMessage always reads current messages without stale closures
   const messagesRef = useRef<ChatMessage[]>([WELCOME_MESSAGE]);
+  // Inactivity timer — fires summary after INACTIVITY_MS of no new messages
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const summarySentRef = useRef(false);
 
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  // ── Inactivity summary ────────────────────────────────────────────────────
+
+  const sendSummary = useCallback(async () => {
+    if (summarySentRef.current) return;
+    const turns = messagesRef.current.filter((m) => m.id !== "welcome");
+    if (turns.length < 2) return; // nothing meaningful to summarise
+
+    summarySentRef.current = true;
+    const email = localStorage.getItem(EMAIL_CAPTURE_KEY);
+    const visitorEmail = email && email !== "skipped" ? email : undefined;
+
+    const payload = {
+      email: visitorEmail,
+      messages: turns.map((m) => ({ role: m.role, content: m.content })),
+    };
+
+    try {
+      await fetch("/api/send-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // Best-effort — never surface email errors to the visitor
+    }
+  }, []);
+
+  /** Resets the inactivity countdown on every new message. */
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    inactivityTimerRef.current = setTimeout(sendSummary, INACTIVITY_MS);
+  }, [sendSummary]);
+
+  // Start/reset timer whenever messages change (only after first real exchange)
+  useEffect(() => {
+    const realMessages = messages.filter((m) => m.id !== "welcome");
+    if (realMessages.length >= 2) resetInactivityTimer();
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  // Send summary when the page/tab is closed (best-effort via sendBeacon)
+  useEffect(() => {
+    function handleUnload() {
+      if (summarySentRef.current) return;
+      const turns = messagesRef.current.filter((m) => m.id !== "welcome");
+      if (turns.length < 2) return;
+      const email = localStorage.getItem(EMAIL_CAPTURE_KEY);
+      const visitorEmail = email && email !== "skipped" ? email : undefined;
+      const payload = JSON.stringify({
+        email: visitorEmail,
+        messages: turns.map((m) => ({ role: m.role, content: m.content })),
+      });
+      navigator.sendBeacon("/api/send-summary", new Blob([payload], { type: "application/json" }));
+    }
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
